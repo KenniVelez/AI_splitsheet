@@ -1,72 +1,509 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Split Sheet Generator</title>
-</head>
-<body>
-  <h1>Split Sheet Generator</h1>
-  <p>Please fill out the form below to generate a split sheet for your song.</p>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f4f6fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #d1d5db;
+      --accent: #2563eb;
+      --accent-dark: #1d4ed8;
+      --danger: #b91c1c;
+      --success: #166534;
+      --step-inactive: #e5e7eb;
+    }
 
-  <form action="#" method="post">
-    <label for="song_title">Song Title:</label>
-    <input type="text" id="song_title" name="song_title" required><br><br>
+    * {
+      box-sizing: border-box;
+    }
 
-    <label for="song_status">Song Status:</label>
-    <select id="song_status" name="song_status" onchange="togglePublisher()">
-      <option value="" selected disabled>Please select an option</option>
-      <option value="Unreleased">Unreleased</option>
-      <option value="Released">Released</option>
-    </select><br><br>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 16px;
+    }
 
-    <label for="songwriters">Songwriters:</label><br>
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Percent</th>
-        </tr>
-      </thead>
-      <tbody id="songwriter_table_body">
-        <tr>
-          <td><input type="text" name="songwriter_name[]" required></td>
-          <td><input type="number" name="songwriter_percent[]" min="0" max="100" required>%</td>
-        </tr>
-      </tbody>
-    </table>
-    <button type="button" onclick="addSongwriter()">Add Songwriter</button><br><br>
+    .container {
+      max-width: 760px;
+      margin: 0 auto;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 10px 20px rgba(15, 23, 42, 0.06);
+    }
 
-    <div id="publisher_div" style="display:none;">
-      <label for="publisher_name">Publisher Name:</label>
-      <input type="text" id="publisher_name" name="publisher_name"><br><br>
-    </div>
+    h1 {
+      margin-top: 0;
+      margin-bottom: 8px;
+      font-size: 1.8rem;
+    }
 
-    <label for="signature">Signature:</label>
-    <input type="text" id="signature" name="signature" required><br><br>
+    .intro {
+      margin-top: 0;
+      color: var(--muted);
+      margin-bottom: 18px;
+    }
 
-    <label for="email">Email:</label>
-    <input type="email" id="email" name="email" required><br><br>
+    .stepper {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 18px;
+    }
 
-    <input type="submit" value="Generate Split Sheet">
-  </form>
+    .step-pill {
+      border-radius: 999px;
+      padding: 8px;
+      text-align: center;
+      font-size: 0.85rem;
+      background: var(--step-inactive);
+      color: #374151;
+      font-weight: 600;
+    }
 
-  <script>
-    function togglePublisher() {
-      var status = document.getElementById("song_status").value;
-      if (status === "Released") {
-        document.getElementById("publisher_div").style.display = "block";
-      } else {
-        document.getElementById("publisher_div").style.display = "none";
+    .step-pill.active {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .step {
+      display: none;
+    }
+
+    .step.active {
+      display: block;
+    }
+
+    .field {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+
+    input,
+    select,
+    button {
+      font: inherit;
+    }
+
+    input,
+    select {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      background: #fff;
+    }
+
+    .songwriter-list {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .songwriter-row {
+      display: grid;
+      grid-template-columns: 1fr 140px;
+      gap: 10px;
+    }
+
+    .row-title {
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .meta {
+      margin-top: 8px;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .meta.good {
+      color: var(--success);
+      font-weight: 600;
+    }
+
+    .error {
+      display: none;
+      margin-top: 6px;
+      font-size: 0.9rem;
+      color: var(--danger);
+      font-weight: 600;
+    }
+
+    .error.visible {
+      display: block;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 8px;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 8px;
+      padding: 10px 14px;
+      cursor: pointer;
+      transition: opacity 0.2s ease;
+    }
+
+    .btn:hover {
+      opacity: 0.9;
+    }
+
+    .btn-secondary {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-dark);
+    }
+
+    .review-block {
+      background: #f9fafb;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      margin-top: 10px;
+      white-space: pre-wrap;
+      line-height: 1.5;
+    }
+
+    .print-note {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 10px;
+      }
+
+      .container {
+        padding: 14px;
+        border-radius: 10px;
+      }
+
+      h1 {
+        font-size: 1.4rem;
+      }
+
+      .songwriter-row {
+        grid-template-columns: 1fr;
+      }
+
+      .actions {
+        flex-direction: column;
+      }
+
+      .btn {
+        width: 100%;
       }
     }
 
-    function addSongwriter() {
-      var table = document.getElementById("songwriter_table_body");
-      var row = table.insertRow();
-      var nameCell = row.insertCell(0);
-      var percentCell = row.insertCell(1);
-      nameCell.innerHTML = '<input type="text" name="songwriter_name[]" required>';
-      percentCell.innerHTML = '<input type="number" name="songwriter_percent[]" min="0" max="100" required>%';
+    @media print {
+      body {
+        background: #fff;
+        padding: 0;
+      }
+
+      .container {
+        border: none;
+        box-shadow: none;
+        padding: 0;
+        max-width: none;
+      }
+
+      .intro,
+      .stepper,
+      .actions,
+      .print-note {
+        display: none !important;
+      }
+
+      .step {
+        display: block !important;
+      }
+
+      input,
+      select {
+        border: 1px solid #999;
+      }
     }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <h1>Split Sheet Generator</h1>
+    <p class="intro">Mobile-ready workflow with validation and print-friendly output.</p>
+    <p class="intro" style="margin-top:-8px;">Need help? Use the guided assistant: <a href="https://chatgpt.com/g/g-p-692b5b109550819195c32ffc470e07e4-split-sheet-gpt/project" target="_blank" rel="noopener noreferrer">Split Sheet GPT Project</a>.</p>
+
+    <div class="stepper" aria-label="Form steps">
+      <div id="pill-1" class="step-pill active">1. Song Info</div>
+      <div id="pill-2" class="step-pill">2. Writers</div>
+      <div id="pill-3" class="step-pill">3. Review</div>
+    </div>
+
+    <form id="split_form" action="#" method="post">
+      <section class="step active" data-step="1">
+        <div class="field">
+          <label for="song_title">Song Title</label>
+          <input type="text" id="song_title" name="song_title" required>
+        </div>
+
+        <div class="field">
+          <label for="song_status">Song Status</label>
+          <select id="song_status" name="song_status" onchange="togglePublisher()" required>
+            <option value="" selected disabled>Please select an option</option>
+            <option value="Unreleased">Unreleased</option>
+            <option value="Released">Released</option>
+          </select>
+        </div>
+
+        <div class="field" id="publisher_div" style="display:none;">
+          <label for="publisher_name">Publisher Name</label>
+          <input type="text" id="publisher_name" name="publisher_name">
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-primary" type="button" onclick="nextStep()">Next: Writers</button>
+        </div>
+      </section>
+
+      <section class="step" data-step="2">
+        <div class="field">
+          <p class="row-title">Songwriters</p>
+          <div class="songwriter-list" id="songwriter_table_body">
+            <div class="songwriter-row">
+              <input type="text" name="songwriter_name[]" placeholder="Name" required>
+              <input type="number" name="songwriter_percent[]" min="0" max="100" placeholder="Percent" required oninput="validateSplits()">
+            </div>
+          </div>
+          <button class="btn btn-secondary" type="button" onclick="addSongwriter()">Add Songwriter</button>
+          <p id="split_meta" class="meta">Current total: 0%</p>
+          <p id="split_error" class="error">Total songwriter percentage must equal 100%.</p>
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-secondary" type="button" onclick="prevStep()">Back</button>
+          <button class="btn btn-primary" type="button" onclick="nextStep()">Next: Review</button>
+        </div>
+      </section>
+
+      <section class="step" data-step="3">
+        <div class="field">
+          <label for="signature">Signature</label>
+          <input type="text" id="signature" name="signature" required>
+        </div>
+
+        <div class="field">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" required>
+        </div>
+
+        <div class="field">
+          <p class="row-title">Review Summary</p>
+          <div id="review_block" class="review-block"></div>
+          <p class="print-note">Use "Print / Save PDF" to export a clean split sheet document.</p>
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-secondary" type="button" onclick="prevStep()">Back</button>
+          <button class="btn btn-secondary" type="button" onclick="window.print()">Print / Save PDF</button>
+          <input class="btn btn-primary" type="submit" value="Generate Split Sheet">
+        </div>
+      </section>
+    </form>
+  </main>
+
+  <script>
+    var currentStep = 1
+
+    function getStep (stepNumber) {
+      return document.querySelector('.step[data-step="' + stepNumber + '"]')
+    }
+
+    function setStep (stepNumber) {
+      currentStep = stepNumber
+      var steps = document.querySelectorAll('.step')
+      var pills = document.querySelectorAll('.step-pill')
+
+      steps.forEach(function (section) {
+        section.classList.remove('active')
+      })
+      pills.forEach(function (pill) {
+        pill.classList.remove('active')
+      })
+
+      getStep(stepNumber).classList.add('active')
+      document.getElementById('pill-' + stepNumber).classList.add('active')
+
+      if (stepNumber === 3) {
+        renderReview()
+      }
+    }
+
+    function validateStep (stepNumber) {
+      if (stepNumber === 1) {
+        var title = document.getElementById('song_title')
+        var status = document.getElementById('song_status')
+        if (!title.value.trim()) {
+          title.reportValidity()
+          return false
+        }
+        if (!status.value) {
+          status.reportValidity()
+          return false
+        }
+      }
+
+      if (stepNumber === 2) {
+        var names = document.querySelectorAll('input[name="songwriter_name[]"]')
+        var hasName = true
+        names.forEach(function (el) {
+          if (!el.value.trim()) {
+            hasName = false
+          }
+        })
+
+        if (!hasName) {
+          names[0].reportValidity()
+          return false
+        }
+
+        if (!validateSplits()) {
+          return false
+        }
+      }
+
+      return true
+    }
+
+    function nextStep () {
+      if (!validateStep(currentStep)) {
+        return
+      }
+      if (currentStep < 3) {
+        setStep(currentStep + 1)
+      }
+    }
+
+    function prevStep () {
+      if (currentStep > 1) {
+        setStep(currentStep - 1)
+      }
+    }
+
+    function togglePublisher () {
+      var status = document.getElementById('song_status').value
+      var publisher = document.getElementById('publisher_div')
+      if (status === 'Released') {
+        publisher.style.display = 'block'
+      } else {
+        publisher.style.display = 'none'
+      }
+    }
+
+    function calculateSplitTotal () {
+      var percents = document.querySelectorAll('input[name="songwriter_percent[]"]')
+      var total = 0
+      percents.forEach(function (field) {
+        var value = Number(field.value)
+        if (!isNaN(value)) {
+          total += value
+        }
+      })
+      return total
+    }
+
+    function validateSplits () {
+      var total = calculateSplitTotal()
+      var meta = document.getElementById('split_meta')
+      var error = document.getElementById('split_error')
+      meta.textContent = 'Current total: ' + total + '%'
+
+      if (total === 100) {
+        error.classList.remove('visible')
+        meta.classList.add('good')
+        return true
+      }
+
+      meta.classList.remove('good')
+      error.classList.add('visible')
+      return false
+    }
+
+    function addSongwriter () {
+      var list = document.getElementById('songwriter_table_body')
+      var row = document.createElement('div')
+      row.className = 'songwriter-row'
+      row.innerHTML = '<input type="text" name="songwriter_name[]" placeholder="Name" required><input type="number" name="songwriter_percent[]" min="0" max="100" placeholder="Percent" required oninput="validateSplits()">'
+      list.appendChild(row)
+      validateSplits()
+    }
+
+    function renderReview () {
+      var title = document.getElementById('song_title').value || '-'
+      var status = document.getElementById('song_status').value || '-'
+      var publisher = document.getElementById('publisher_name').value || '-'
+      var signature = document.getElementById('signature').value || '-'
+      var email = document.getElementById('email').value || '-'
+
+      var names = document.querySelectorAll('input[name="songwriter_name[]"]')
+      var percents = document.querySelectorAll('input[name="songwriter_percent[]"]')
+
+      var writerLines = []
+      names.forEach(function (nameField, index) {
+        var writerName = nameField.value || '-'
+        var writerPercent = percents[index].value || '0'
+        writerLines.push((index + 1) + '. ' + writerName + ' — ' + writerPercent + '%')
+      })
+
+      var reviewText = ''
+      reviewText += 'Song: ' + title + '\n'
+      reviewText += 'Status: ' + status + '\n'
+      if (status === 'Released') {
+        reviewText += 'Publisher: ' + publisher + '\n'
+      }
+      reviewText += '\nSongwriters:\n' + writerLines.join('\n') + '\n\n'
+      reviewText += 'Signature: ' + signature + '\n'
+      reviewText += 'Email: ' + email + '\n'
+      reviewText += 'Total Split: ' + calculateSplitTotal() + '%'
+
+      document.getElementById('review_block').textContent = reviewText
+    }
+
+    document.getElementById('split_form').addEventListener('submit', function (event) {
+      if (!validateSplits()) {
+        event.preventDefault()
+      }
+    })
+
+    validateSplits()
   </script>
 </body>
 </html>
