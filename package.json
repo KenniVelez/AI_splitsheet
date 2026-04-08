@@ -1,25 +1,26 @@
 {
-  "license": "MIT",
+  "name": "your-package-name",
+  "version": "1.0.0",
+  "description": "your package description",
+  "main": "index.js",
   "scripts": {
-    "test": "standard && nyc --reporter=lcov mocha tests/*",
-    "lint": "standard --fix",
-    "start": "node server.js",
-    "coverage": "codecov"
+    "test": "echo 'Error: no test specified' && exit 1"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KenniVelez/AI_splitsheet.git"
+  },
+  "keywords": [],
+  "author": "Your Name",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/KenniVelez/AI_splitsheet/issues"
+  },
+  "homepage": "https://github.com/KenniVelez/AI_splitsheet#readme",
   "dependencies": {
-    "compression": "^1.7.4",
-    "cors": "^2.8.5",
-    "express": "^4.18.2",
-    "morgan": "^1.10.0",
-    "winston": "^3.2.1"
+    "path-to-regexp": "0.1.13"
   },
   "devDependencies": {
-    "chai": "^4.2.0",
-    "chai-http": "^4.3.0",
-    "codecov": "^3.7.1",
-    "mocha": "^7.1.1",
-    "nodemon": "^2.0.3",
-    "nyc": "^15.0.0",
-    "standard": "^14.3.3"
+    "path-to-regexp": "0.1.13"
   }
 }
