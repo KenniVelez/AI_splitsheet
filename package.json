@@ -18,9 +18,9 @@
   },
   "homepage": "https://github.com/KenniVelez/AI_splitsheet#readme",
   "dependencies": {
-    "path-to-regexp": "0.1.13"
+    "path-to-regexp": "^6.2.1"
   },
   "devDependencies": {
-    "path-to-regexp": "0.1.13"
+    "path-to-regexp": "^6.2.1"
   }
 }
