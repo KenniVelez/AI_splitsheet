@@ -19,5 +19,8 @@
   "homepage": "https://github.com/KenniVelez/AI_splitsheet#readme",
   "dependencies": {
     "path-to-regexp": "^6.2.1"
+  },
+  "devDependencies": {
+    "js-yaml": "^3.15.2"
   }
 }
